@@ -36,15 +36,17 @@ class NaverSearchApi():
         self.api_url = "https://openapi.naver.com/v1/search/image"
         return self.get_paging_call(keyword, quantity)
 
-    def save_images(self, r):
+    def save_images(self, path, r):
+        if not os.path.exists(path):
+            os.mkdir(path)
         cnt = 0
         for img in r:
             image_url = img['link']
             image_byte = Request(image_url, headers={'User-Agent': 'Mozilla/5.0'})
-            f = open(f'{cnt}.jpg', 'wb')
+            f = open(f'{path}/{cnt}.jpg', 'wb')
             f.write(urlopen(image_byte).read())
             f.close()
-            cnt = cnt+1
+            cnt = cnt + 1
 
     def get_paging_call(self, keyword, quantity):
         if quantity > 1100:
@@ -59,19 +61,23 @@ class NaverSearchApi():
             repeat = 1
         result = []
         for i in range(repeat):
-            print(f"{i + 1}번 반복합니다")
-            start = i * 100 + 1
-            if start > 1000:
-                start = 1000
-            print(start)
-            r = self.call_api(keyword, start=start, count=display)
-            print(r['items'][0])
-            result += r['items']
+            try:
+                print(f"{i + 1}번 반복합니다")
+                start = i * 100 + 1
+                if start > 1000:
+                    start = 1000
+                print(start)
+                r = self.call_api(keyword, start=start, count=display)
+                print(r['items'][0])
+                result += r['items']
+            except Exception as e:
+                print(e)
         return result
 
 
 if __name__ == '__main__':
     naver_search_api = NaverSearchApi()
-    r = naver_search_api.image("비트코인", 20)
+    keyword = "소주연"
+    r = naver_search_api.image(keyword, 20)
     print(r)
-    naver_search_api.save_images(r)
+    naver_search_api.save_images(keyword,r)
